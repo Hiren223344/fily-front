@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export function EmptyState({ title = 'No items found', description = 'Get started by creating your first entry.', actionLabel, onAction }) {
   return (

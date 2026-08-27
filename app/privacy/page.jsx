@@ -1,1 +1,5 @@
-﻿export { default } from '../privacy-policy/page';
+'use client';
+import PrivacyPolicyPage from '../privacy-policy/page';
+export default function PrivacyPage() {
+  return <PrivacyPolicyPage />;
+}

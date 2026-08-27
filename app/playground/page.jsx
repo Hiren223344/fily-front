@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Nav } from '@/components/Nav';
 import { streamChatCompletions } from '@/lib/stream';
@@ -15,9 +15,9 @@ const AVAILABLE_MODELS = [
   { id: 'custom-fine-tune', name: 'Your fine-tune', provider: 'Custom', category: 'Text' },
 ];
 
-export default function PlaygroundPage() {
+function PlaygroundContent() {
   const searchParams = useSearchParams();
-  const initialModel = searchParams.get('model') || 'llama-3.1-70b';
+  const initialModel = searchParams?.get('model') || 'llama-3.1-70b';
 
   const [model, setModel] = useState(initialModel);
   const [systemPrompt, setSystemPrompt] = useState('You are an expert AI assistant on FilyBase serverless inference.');
@@ -37,7 +37,6 @@ export default function PlaygroundPage() {
   const abortHandleRef = useRef(null);
   const startTimeRef = useRef(0);
 
-  // Abort on unmount via AbortController
   useEffect(() => {
     return () => {
       if (abortHandleRef.current && abortHandleRef.current.abort) {
@@ -63,7 +62,6 @@ export default function PlaygroundPage() {
     const startTime = performance.now();
     startTimeRef.current = startTime;
     let firstTokenReceived = false;
-    let accumulatedTokens = 0;
 
     const messages = [
       ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
@@ -71,7 +69,6 @@ export default function PlaygroundPage() {
     ];
 
     if (stream) {
-      // Use fetch + ReadableStream reader with rAF-batched flush
       const handle = await streamChatCompletions({
         model,
         messages,
@@ -85,7 +82,6 @@ export default function PlaygroundPage() {
             setTtftMs(ttft);
           }
           setOutput((prev) => prev + tokenChunk);
-          accumulatedTokens += Math.max(1, Math.floor(tokenChunk.length / 4));
           setTokenCount((prev) => prev + Math.max(1, Math.floor(tokenChunk.length / 4)));
         },
         onDone: () => {
@@ -101,7 +97,6 @@ export default function PlaygroundPage() {
 
       abortHandleRef.current = handle;
     } else {
-      // Non-streaming fallback
       try {
         const res = await api.post('/v1/chat/completions', {
           model,
@@ -148,7 +143,6 @@ export default function PlaygroundPage() {
       <Nav variant="marketing" />
 
       <div style={{ maxWidth: '1280px', margin: '40px auto 0', padding: '0 24px' }}>
-        {/* HEADER */}
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
           <div>
             <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '8px' }}>TEST CONSOLE</div>
@@ -163,9 +157,7 @@ export default function PlaygroundPage() {
           </div>
         </div>
 
-        {/* PLAYGROUND GRID */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px', alignItems: 'start' }}>
-          {/* LEFT: INPUTS & CONTROLS */}
           <div style={{ background: '#ffffff', borderRadius: '40px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>Model</div>
@@ -252,7 +244,6 @@ export default function PlaygroundPage() {
               />
             </div>
 
-            {/* PARAMETER SLIDERS */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', paddingTop: '8px', borderTop: '1px solid #e0dbce' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
@@ -286,7 +277,6 @@ export default function PlaygroundPage() {
               </div>
             </div>
 
-            {/* STREAMING TOGGLE */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
               <div>
                 <div style={{ fontSize: '14px', fontWeight: 500 }}>SSE Streaming</div>
@@ -300,7 +290,6 @@ export default function PlaygroundPage() {
               />
             </div>
 
-            {/* ACTIONS */}
             <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
               {isStreaming ? (
                 <button
@@ -346,7 +335,6 @@ export default function PlaygroundPage() {
             </div>
           </div>
 
-          {/* RIGHT: STREAMING OUTPUT */}
           <div style={{ background: '#ffffff', borderRadius: '40px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '480px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -381,7 +369,6 @@ export default function PlaygroundPage() {
               )}
             </div>
 
-            {/* METRICS BAR */}
             {(latencyMs !== null || ttftMs !== null || tokenCount > 0) && (
               <div style={{ display: 'flex', gap: '16px', background: '#f5f1e4', borderRadius: '16px', padding: '10px 16px', fontSize: '12px' }}>
                 {ttftMs !== null && (
@@ -405,14 +392,12 @@ export default function PlaygroundPage() {
               </div>
             )}
 
-            {/* ERROR ALERT */}
             {error && (
               <div style={{ background: '#ffebe8', color: '#ff705d', padding: '12px 16px', borderRadius: '14px', fontSize: '13px' }}>
                 {error}
               </div>
             )}
 
-            {/* TEXT STREAM DISPLAY */}
             <div
               style={{
                 flex: 1,
@@ -455,5 +440,13 @@ export default function PlaygroundPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PlaygroundPage() {
+  return (
+    <Suspense fallback={<div style={{ background: '#f5f1e4', minHeight: '100vh' }}></div>}>
+      <PlaygroundContent />
+    </Suspense>
   );
 }

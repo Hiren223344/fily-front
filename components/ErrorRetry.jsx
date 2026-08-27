@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export function ErrorRetry({ error, onRetry, message = 'Unable to load data' }) {
   const displayMsg = typeof error === 'string' ? error : error?.message || message;
