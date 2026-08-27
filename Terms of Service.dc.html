@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f1e4; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  a { color: #2c2e2a; text-decoration: none; border-bottom: 1px solid #80827f; }
+  a:hover { border-bottom-color: #2c2e2a; }
+  ::selection { background: #8ed462; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</helmet>
+
+<div style="background:#f5f1e4;color:#2c2e2a;min-height:100vh;padding-bottom:100px">
+
+  <div style="max-width:1200px;margin:0 auto;padding:24px 24px 0">
+    <div style="background:#ffffff;border-radius:50px;padding:10px 10px 10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <a href="FilyBase Landing.dc.html" style="display:flex;align-items:center;gap:10px;border-bottom:none">
+        <img src="uploads/logoipsum-392.png" alt="FilyBase logo" style="width:36px;height:36px;border-radius:10px;display:block">
+        <span style="font-size:17px;font-weight:500;color:#2c2e2a">FilyBase</span>
+      </a>
+      <div style="display:flex;gap:20px;font-size:15px;font-weight:500">
+        <a href="Models.dc.html" style="color:#80827f;border-bottom:none">Models</a>
+        <a href="FilyBase Landing.dc.html#pricing" style="color:#80827f;border-bottom:none">Pricing</a>
+        <a href="Docs.dc.html" style="color:#80827f;border-bottom:none">Docs</a>
+      </div>
+      <a href="Sign Up.dc.html" style="background:#f5f1e4;border-radius:50px;padding:11px 20px;font-size:15px;font-weight:500;font-family:inherit;color:#2c2e2a;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:none">
+        Get API key
+        <span style="width:8px;height:8px;border-radius:50%;background:#2ba0ff;display:inline-block"></span>
+      </a>
+    </div>
+  </div>
+
+  <div style="max-width:760px;margin:56px auto 0;padding:0 24px;opacity:0;animation:fadeUp 0.6s cubic-bezier(0.4,0,0.2,1) forwards">
+    <div style="font-size:15px;color:#80827f;margin-bottom:12px">LEGAL</div>
+    <h1 style="font-size:53px;font-weight:500;letter-spacing:-2.12px;line-height:1.15;margin:0 0 12px">Terms of Service</h1>
+    <p style="font-size:15px;color:#80827f;margin:0 0 40px">Last updated August 27, 2026</p>
+
+    <div style="background:#ffffff;border-radius:40px;padding:48px;display:flex;flex-direction:column;gap:32px">
+      <div>
+        <p style="font-size:17px;line-height:1.6;margin:0">These Terms of Service ("Terms") govern your access to and use of FilyBase's serverless inference API, dashboard, and related services (the "Service"), operated by FilyBase, Inc. By creating an account or using the Service, you agree to these Terms.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">1. Accounts</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">You must provide accurate information when creating an account and are responsible for maintaining the confidentiality of your API keys and credentials. You are responsible for all activity under your account.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">2. Use of the Service</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">You may use the Service to send requests to hosted models and receive inference results. You agree not to use the Service to generate content that is illegal, infringing, or that violates the rights of others, and not to attempt to circumvent rate limits, reverse-engineer hosted models, or resell access without our written consent.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">3. Fees and billing</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">Usage is billed per token, image, or minute of audio processed, as described on our Pricing page. Fees are non-refundable except as required by law. We may suspend access for accounts with an outstanding balance.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">4. API rate limits and availability</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">We aim to provide reliable access to the Service but do not guarantee uninterrupted availability. Rate limits apply per plan tier and may change with notice. Scheduled maintenance will be communicated where practical.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">5. Your content</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">You retain ownership of prompts, inputs, and outputs you submit to or receive from the Service ("Your Content"). You grant us a limited license to process Your Content solely to provide the Service. We do not use Your Content to train models without your explicit opt-in.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">6. Intellectual property</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">The Service, including our software, branding, and documentation, is owned by FilyBase and protected by intellectual property laws. These Terms do not grant you any rights to our trademarks or proprietary technology beyond what is necessary to use the Service.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">7. Disclaimers</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">The Service is provided "as is" without warranties of any kind. Model outputs may be inaccurate, incomplete, or unsuitable for your use case, and you are responsible for evaluating outputs before relying on them.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">8. Limitation of liability</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">To the maximum extent permitted by law, FilyBase will not be liable for indirect, incidental, or consequential damages arising from your use of the Service. Our total liability for any claim will not exceed the amount you paid us in the 12 months preceding the claim.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">9. Termination</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">You may stop using the Service and close your account at any time. We may suspend or terminate your access if you violate these Terms or misuse the Service.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">10. Governing law</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">These Terms are governed by the laws of the State of Delaware, without regard to conflict-of-law principles.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">11. Changes to these Terms</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">We may update these Terms from time to time. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.</p>
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:500;margin:0 0 12px">12. Contact us</h2>
+        <p style="font-size:16px;line-height:1.6;margin:0">Questions about these Terms can be sent to <a href="mailto:legal@filybase.ai">legal@filybase.ai</a>.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;display:flex;gap:20px;font-size:14px;color:#80827f">
+      <a href="Privacy Policy.dc.html" style="border-bottom:1px solid #80827f">Privacy Policy</a>
+      <a href="Cookie Policy.dc.html" style="border-bottom:1px solid #80827f">Cookie Policy</a>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200}}"></script>
+</body>
+</html>

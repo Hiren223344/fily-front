@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f5f1e4; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+  a { color: #2c2e2a; text-decoration: none; }
+  ::selection { background: #8ed462; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+  .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace; }
+</style>
+</helmet>
+
+<div style="background:#f5f1e4;color:#2c2e2a;min-height:100vh;padding-bottom:80px">
+
+  <!-- NAV -->
+  <div style="max-width:1280px;margin:0 auto;padding:24px 24px 0">
+    <div style="background:#ffffff;border-radius:50px;padding:10px 10px 10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <a href="FilyBase Landing.dc.html" style="display:flex;align-items:center;gap:10px;border-bottom:none">
+        <img src="uploads/logoipsum-392.png" alt="FilyBase logo" style="width:36px;height:36px;border-radius:10px;display:block">
+        <span style="font-size:17px;font-weight:500;color:#2c2e2a">FilyBase</span>
+      </a>
+      <div style="display:flex;gap:20px;font-size:15px;font-weight:500">
+        <a href="FilyBase Dashboard.dc.html" style="color:#80827f">Overview</a>
+        <a href="Endpoints.dc.html" style="color:#2c2e2a">Endpoints</a>
+        <a href="Billing.dc.html" style="color:#80827f">Billing</a>
+      </div>
+      <div style="width:40px;height:40px;border-radius:50%;background:#2ba0ff;display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:500;font-size:14px">JD</div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div style="max-width:1280px;margin:40px auto 0;padding:0 24px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div style="opacity:0;animation:fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) 0s forwards">
+      <div style="font-size:15px;color:#80827f;margin-bottom:8px">DEPLOYMENTS</div>
+      <h1 style="font-size:53px;font-weight:500;letter-spacing:-2.12px;line-height:1.1;margin:0">Endpoints</h1>
+    </div>
+    <button onClick="{{ openModal }}" style="background:#2c2e2a;color:#f5f1e4;border:none;border-radius:50px;padding:14px 24px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;opacity:0;animation:fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) 0.08s forwards;transition:background 200ms ease" style-hover="background:#3a3c34">New endpoint</button>
+  </div>
+
+  <!-- FILTERS -->
+  <div style="max-width:1280px;margin:24px auto 0;padding:0 24px;display:flex;gap:8px;opacity:0;animation:fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) 0.14s forwards">
+    <button onClick="{{ setFilterAll }}" style="border:none;border-radius:50px;padding:10px 18px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;background:{{ allBg }};color:#2c2e2a;transition:background 200ms ease">All</button>
+    <button onClick="{{ setFilterLive }}" style="border:none;border-radius:50px;padding:10px 18px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;background:{{ liveBg }};color:#2c2e2a;transition:background 200ms ease">Live</button>
+    <button onClick="{{ setFilterPaused }}" style="border:none;border-radius:50px;padding:10px 18px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;background:{{ pausedBg }};color:#2c2e2a;transition:background 200ms ease">Paused</button>
+  </div>
+
+  <!-- ENDPOINTS LIST -->
+  <div style="max-width:1280px;margin:16px auto 0;padding:0 24px;opacity:0;animation:fadeUp 0.6s cubic-bezier(0.4,0,0.2,1) 0.2s forwards">
+    <div style="background:#ffffff;border-radius:50px;padding:32px">
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;padding:0 4px 12px;font-size:13px;color:#80827f">
+        <div>Name</div><div>Model</div><div>Requests (24h)</div><div>P50 latency</div><div>Created</div><div>Status</div>
+      </div>
+      <sc-for list="{{ endpoints }}" as="ep" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:1.4fr 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;padding:16px 4px;border-top:1px solid #e0dbce;align-items:center;font-size:14px;transition:background 150ms ease" style-hover="background:#f5f1e4">
+          <div style="font-weight:500">{{ ep.name }}</div>
+          <div class="mono" style="color:#80827f">{{ ep.model }}</div>
+          <div class="mono">{{ ep.requests }}</div>
+          <div class="mono">{{ ep.latency }}</div>
+          <div style="color:#80827f">{{ ep.created }}</div>
+          <button onClick="{{ ep.toggle }}" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:#2c2e2a;justify-self:start">
+            {{ ep.statusLabel }}
+            <span style="width:9px;height:9px;border-radius:50%;background:{{ ep.statusColor }};display:inline-block"></span>
+          </button>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeModal }}" style="position:fixed;inset:0;background:rgba(44,46,42,0.35);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px;animation:overlayIn 220ms cubic-bezier(0.4,0,0.2,1)">
+      <div onClick="{{ stopClick }}" style="background:#ffffff;border-radius:40px;padding:40px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:20px;animation:modalIn 260ms cubic-bezier(0.16,1,0.3,1)">
+        <div>
+          <div style="font-size:15px;color:#80827f;margin-bottom:8px">NEW ENDPOINT</div>
+          <h2 style="font-size:30px;font-weight:500;margin:0">Deploy an endpoint</h2>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:8px">Endpoint name</div>
+          <input type="text" value="{{ formName }}" onChange="{{ setFormName }}" placeholder="e.g. chat-prod" style="width:100%;background:#f5f1e4;border:1px solid #e0dbce;border-radius:10px;padding:13px 16px;font-size:15px;font-family:inherit;color:#2c2e2a">
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:8px">Model</div>
+          <select value="{{ formModel }}" onChange="{{ setFormModel }}" style="width:100%;background:#f5f1e4;border:1px solid #e0dbce;border-radius:10px;padding:13px 16px;font-size:15px;font-family:inherit;color:#2c2e2a">
+            <option value="llama-3.1-70b">Llama 3.1 70B</option>
+            <option value="llama-3.1-8b">Llama 3.1 8B</option>
+            <option value="mixtral-8x22b">Mixtral 8x22B</option>
+            <option value="qwen-2.5-32b">Qwen 2.5 32B</option>
+            <option value="stable-diffusion-3">Stable Diffusion 3</option>
+            <option value="bge-large">BGE Large (embeddings)</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:8px">Compute tier</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button onClick="{{ selectShared }}" style="text-align:left;border:1px solid {{ sharedBorder }};background:{{ sharedBg }};border-radius:16px;padding:14px 16px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:14px;font-weight:500">Shared pool</div>
+              <div style="font-size:13px;color:#80827f">Autoscaling, pay per token — available now</div>
+            </button>
+            <div style="border:1px solid #e0dbce;border-radius:16px;padding:14px 16px;opacity:0.5">
+              <div style="font-size:14px;font-weight:500">Dedicated GPU</div>
+              <div style="font-size:13px;color:#80827f">Reserved capacity, fixed hourly rate — coming soon</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button onClick="{{ closeModal }}" style="flex:1;background:#f5f1e4;border:none;border-radius:50px;padding:14px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">Cancel</button>
+          <button onClick="{{ deploy }}" style="flex:1;background:#8ed462;border:none;border-radius:50px;padding:14px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">Deploy</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280}}">
+class Component extends DCLogic {
+  state = {
+    filter: 'all',
+    modalOpen: false,
+    formName: '',
+    formModel: 'llama-3.1-70b',
+    endpoints: [
+      { name: 'chat-prod', model: 'llama-3.1-70b', requests: '48.2K', latency: '41ms', created: 'Jun 12, 2026', live: true },
+      { name: 'embeddings', model: 'bge-large', requests: '12.9K', latency: '9ms', created: 'Jun 12, 2026', live: true },
+      { name: 'sd-image-gen', model: 'stable-diffusion-3', requests: '2.1K', latency: '640ms', created: 'Jul 2, 2026', live: false },
+      { name: 'ft-support-bot', model: 'custom fine-tune', requests: '6.4K', latency: '52ms', created: 'Jul 18, 2026', live: true },
+      { name: 'summarizer', model: 'qwen-2.5-32b', requests: '980', latency: '38ms', created: 'Aug 3, 2026', live: true },
+      { name: 'moderation-check', model: 'llama-3.1-8b', requests: '31.5K', latency: '18ms', created: 'Aug 9, 2026', live: false },
+    ],
+  };
+
+  renderVals() {
+    const filter = this.state.filter;
+    const filtered = this.state.endpoints.filter(ep => filter === 'all' || (filter === 'live' ? ep.live : !ep.live));
+    const endpoints = filtered.map(ep => {
+      const idx = this.state.endpoints.indexOf(ep);
+      return {
+        ...ep,
+        statusLabel: ep.live ? 'Live' : 'Paused',
+        statusColor: ep.live ? '#8ed462' : '#ff705d',
+        toggle: () => this.setState(s => {
+          const next = [...s.endpoints];
+          next[idx] = { ...next[idx], live: !next[idx].live };
+          return { endpoints: next };
+        }),
+      };
+    });
+    return {
+      endpoints,
+      allBg: filter === 'all' ? '#8ed462' : '#ffffff',
+      liveBg: filter === 'live' ? '#8ed462' : '#ffffff',
+      pausedBg: filter === 'paused' ? '#8ed462' : '#ffffff',
+      setFilterAll: () => this.setState({ filter: 'all' }),
+      setFilterLive: () => this.setState({ filter: 'live' }),
+      setFilterPaused: () => this.setState({ filter: 'paused' }),
+      modalOpen: this.state.modalOpen,
+      formName: this.state.formName,
+      formModel: this.state.formModel,
+      sharedBorder: '#8ed462',
+      sharedBg: '#f5f1e4',
+      openModal: () => this.setState({ modalOpen: true, formName: '', formModel: 'llama-3.1-70b' }),
+      closeModal: () => this.setState({ modalOpen: false }),
+      stopClick: (e) => e.stopPropagation(),
+      setFormName: (e) => this.setState({ formName: e.target.value }),
+      setFormModel: (e) => this.setState({ formModel: e.target.value }),
+      selectShared: () => {},
+      deploy: () => {
+        const name = this.state.formName.trim() || `endpoint-${Math.floor(Math.random() * 900 + 100)}`;
+        this.setState(s => ({
+          modalOpen: false,
+          endpoints: [{ name, model: s.formModel, requests: '0', latency: '—', created: 'Aug 27, 2026', live: true }, ...s.endpoints],
+        }));
+      },
+    };
+  }
+}
+
+</script>
+</body>
+</html>
