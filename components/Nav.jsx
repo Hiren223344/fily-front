@@ -1,24 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { usePathname } from 'next/navigation';
+import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { ApiKeyModal } from './ApiKeyModal';
 
 export function Nav({ variant = 'auto' }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { user } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [session, setSession] = useState({ isAuthenticated: false, user: null });
-
-  useEffect(() => {
-    return auth.subscribe((s) => {
-      setSession(s);
-    });
-  }, []);
 
   const isDashboardPage =
     variant === 'dashboard' ||
@@ -28,15 +20,6 @@ export function Nav({ variant = 'auto' }) {
         pathname.startsWith('/billing') ||
         pathname.startsWith('/playground')));
 
-  const initials = session.user?.name
-    ? session.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .substring(0, 2)
-        .toUpperCase()
-    : 'JD';
-
   return (
     <>
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 0', width: '100%' }}>
@@ -44,7 +27,7 @@ export function Nav({ variant = 'auto' }) {
           style={{
             background: '#ffffff',
             borderRadius: '50px',
-            padding: '10px 10px 10px 20px',
+            padding: '10px 14px 10px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -270,161 +253,72 @@ export function Nav({ variant = 'auto' }) {
               </div>
             )}
 
-            {/* Get API Key / Sign In button or Avatar */}
-            {isDashboardPage ? (
-              <div style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: '#2ba0ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#ffffff',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                  title={session.user?.email || 'Jordan Diaz'}
-                >
-                  {initials}
-                </button>
+            {/* Clerk Authentication Buttons */}
+            <SignedIn>
+              <button
+                type="button"
+                onClick={() => setApiKeyModalOpen(true)}
+                style={{
+                  background: '#f5f1e4',
+                  borderRadius: '50px',
+                  padding: '9px 16px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  color: '#2c2e2a',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  border: 'none',
+                }}
+              >
+                API Key
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8ed462', display: 'inline-block' }}></span>
+              </button>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
 
-                {/* User Dropdown */}
-                {userMenuOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 12px)',
-                      right: 0,
-                      background: '#ffffff',
-                      borderRadius: '20px',
-                      padding: '8px',
-                      minWidth: '220px',
-                      border: '1px solid #e0dbce',
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
-                      zIndex: 150,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                    }}
-                  >
-                    <div style={{ padding: '10px 14px', borderBottom: '1px solid #e0dbce' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 500, color: '#2c2e2a' }}>
-                        {session.user?.name || 'Jordan Diaz'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#80827f' }} className="mono">
-                        {session.user?.email || 'jordan@filybase.ai'}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        setApiKeyModalOpen(true);
-                      }}
-                      style={{
-                        padding: '10px 14px',
-                        fontSize: '14px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: '12px',
-                        color: '#2c2e2a',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      Create API Key
-                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8ed462' }}></span>
-                    </button>
-                    <Link
-                      href="/endpoints"
-                      onClick={() => setUserMenuOpen(false)}
-                      style={{ padding: '10px 14px', fontSize: '14px', borderRadius: '12px', color: '#2c2e2a', textDecoration: 'none' }}
-                    >
-                      Manage Endpoints
-                    </Link>
-                    <Link
-                      href="/billing"
-                      onClick={() => setUserMenuOpen(false)}
-                      style={{ padding: '10px 14px', fontSize: '14px', borderRadius: '12px', color: '#2c2e2a', textDecoration: 'none' }}
-                    >
-                      Billing & Invoices
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        auth.logout();
-                      }}
-                      style={{
-                        padding: '10px 14px',
-                        fontSize: '14px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        borderRadius: '12px',
-                        color: '#ff705d',
-                        borderTop: '1px solid #f5f1e4',
-                        marginTop: '4px',
-                      }}
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => setApiKeyModalOpen(true)}
-                  style={{
-                    background: '#f5f1e4',
-                    borderRadius: '50px',
-                    padding: '11px 20px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    fontFamily: 'inherit',
-                    color: '#2c2e2a',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    border: 'none',
-                    textDecoration: 'none',
-                  }}
-                >
-                  Get API key
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ba0ff', display: 'inline-block' }}></span>
-                </button>
-                <Link
-                  href="/signin"
-                  style={{
-                    background: '#2c2e2a',
-                    color: '#f5f1e4',
-                    borderRadius: '50px',
-                    padding: '11px 20px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    fontFamily: 'inherit',
-                    textDecoration: 'none',
-                    display: 'inline-block',
-                  }}
-                >
-                  Sign in
-                </Link>
-              </div>
-            )}
+            <SignedOut>
+              <button
+                type="button"
+                onClick={() => setApiKeyModalOpen(true)}
+                style={{
+                  background: '#f5f1e4',
+                  borderRadius: '50px',
+                  padding: '11px 20px',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  color: '#2c2e2a',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  border: 'none',
+                  textDecoration: 'none',
+                }}
+              >
+                Get API key
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ba0ff', display: 'inline-block' }}></span>
+              </button>
+              <Link
+                href="/signin"
+                style={{
+                  background: '#2c2e2a',
+                  color: '#f5f1e4',
+                  borderRadius: '50px',
+                  padding: '11px 20px',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                Sign in
+              </Link>
+            </SignedOut>
           </div>
         </div>
       </div>
