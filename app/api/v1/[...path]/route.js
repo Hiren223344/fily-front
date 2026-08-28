@@ -51,9 +51,9 @@ async function forward(req, params) {
   const incoming = new URL(req.url);
   const target = `${BACKEND_ORIGIN}/v1/${pathParts.join('/')}${incoming.search}`;
 
-  const headers = {};
+  const fwdHeaders = {};
   for (const [key, value] of req.headers) {
-    if (!STRIP.has(key.toLowerCase())) headers[key] = value;
+    if (!STRIP.has(key.toLowerCase())) fwdHeaders[key] = value;
   }
 
   const hasBody = !['GET', 'HEAD'].includes(req.method);
@@ -62,7 +62,7 @@ async function forward(req, params) {
   const call = (token) =>
     fetch(target, {
       method: req.method,
-      headers: { ...headers, ...(token ? { authorization: `Bearer ${token}` } : {}) },
+      headers: { ...fwdHeaders, ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: bodyBuffer,
       redirect: 'manual',
       cache: 'no-store',
