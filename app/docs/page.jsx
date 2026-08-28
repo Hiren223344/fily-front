@@ -12,13 +12,14 @@ export default function DocsPage() {
       {/* HEADER */}
       <div style={{ maxWidth: '1200px', margin: '56px auto 0', padding: '0 24px', opacity: 0, animation: 'fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) forwards' }}>
         <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '12px' }}>DOCUMENTATION</div>
-        <h1 style={{ fontSize: '53px', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.15, margin: 0 }}>
+        <h1 style={{ fontSize: 'clamp(34px, 9vw, 53px)', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.15, margin: 0 }}>
           Getting started
         </h1>
       </div>
 
       {/* BODY */}
       <div
+        className="docs-layout"
         style={{
           maxWidth: '1200px',
           margin: '40px auto 0',
@@ -33,6 +34,7 @@ export default function DocsPage() {
       >
         {/* SIDEBAR */}
         <div
+          className="docs-sidebar"
           style={{
             background: '#ffffff',
             borderRadius: '32px',
@@ -42,6 +44,7 @@ export default function DocsPage() {
             gap: '2px',
             position: 'sticky',
             top: '24px',
+            minWidth: 0,
           }}
         >
           <a href="#getting-started" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 16px', borderRadius: '24px', background: '#8ed462', fontSize: '14px', fontWeight: 500, borderBottom: 'none', width: '100%', textDecoration: 'none', color: '#2c2e2a' }}>
@@ -71,7 +74,7 @@ export default function DocsPage() {
         </div>
 
         {/* CONTENT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', minWidth: 0 }}>
           <div id="getting-started" style={{ background: '#ffffff', borderRadius: '40px', padding: '40px' }}>
             <h2 style={{ fontSize: '30px', fontWeight: 500, margin: '0 0 16px' }}>1. Get your API key</h2>
             <p style={{ fontSize: '17px', lineHeights: 1.6, margin: '0 0 20px', color: '#2c2e2a' }}>
@@ -106,7 +109,7 @@ export default function DocsPage() {
               </Link>
               .
             </p>
-            <div style={{ background: '#f5f1e4', borderRadius: '24px', padding: '22px 24px', fontSize: '14px', lineHeight: 1.7 }} className="mono">
+            <div style={{ background: '#f5f1e4', borderRadius: '24px', padding: '22px 24px', fontSize: '14px', lineHeight: 1.7, overflowX: 'auto', whiteSpace: 'pre' }} className="mono">
               <div>curl https://api.filybase.ai/v1/completions \</div>
               <div style={{ paddingLeft: '14px' }}>-H &quot;Authorization: Bearer $FILYBASE_KEY&quot; \</div>
               <div style={{ paddingLeft: '14px' }}>-d &apos;&#123;&quot;model&quot;: &quot;llama-3.1-70b&quot;, &quot;prompt&quot;: &quot;Hello, world&quot;&#125;&apos;</div>
@@ -118,7 +121,7 @@ export default function DocsPage() {
             <p style={{ fontSize: '17px', lineHeight: 1.6, margin: '0 0 20px', color: '#2c2e2a' }}>
               Responses stream back as JSON, with usage and timing metadata on every call.
             </p>
-            <div style={{ background: '#f5f1e4', borderRadius: '24px', padding: '22px 24px', fontSize: '14px', lineHeight: 1.7 }} className="mono">
+            <div style={{ background: '#f5f1e4', borderRadius: '24px', padding: '22px 24px', fontSize: '14px', lineHeight: 1.7, overflowX: 'auto', whiteSpace: 'pre' }} className="mono">
               <div>&#123;</div>
               <div style={{ paddingLeft: '20px' }}>&quot;id&quot;: &quot;cmpl-8f2a...&quot;,</div>
               <div style={{ paddingLeft: '20px' }}>&quot;model&quot;: &quot;llama-3.1-70b&quot;,</div>

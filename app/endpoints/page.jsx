@@ -217,7 +217,7 @@ class EndpointsComponent extends React.Component {
         >
           <div style={{ opacity: 0, animation: 'fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) 0s forwards' }}>
             <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '8px' }}>DEPLOYMENTS</div>
-            <h1 style={{ fontSize: '53px', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.1, margin: 0 }}>
+            <h1 style={{ fontSize: 'clamp(34px, 9vw, 53px)', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.1, margin: 0 }}>
               Endpoints
             </h1>
           </div>

@@ -222,7 +222,7 @@ class DashboardComponent extends React.Component {
             </div>
             <h1
               style={{
-                fontSize: '53px',
+                fontSize: 'clamp(34px, 9vw, 53px)',
                 fontWeight: 500,
                 letterSpacing: '-2.12px',
                 lineHeight: 1.1,

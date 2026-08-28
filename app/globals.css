@@ -109,3 +109,45 @@ button, a {
 .card-hover:hover {
   transform: translateY(-3px);
 }
+
+/* Nav: desktop layout is unchanged above 860px. Below it, links + auth
+   actions collapse into a hamburger-triggered dropdown. */
+.nav-links,
+.nav-actions {
+  display: flex;
+}
+
+.nav-hamburger {
+  display: none;
+}
+
+.nav-mobile-panel {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .nav-links,
+  .nav-actions {
+    display: none;
+  }
+
+  .nav-hamburger {
+    display: flex;
+  }
+
+  .nav-mobile-panel.is-open {
+    display: flex;
+  }
+}
+
+/* Docs sidebar: stack above content below 860px instead of a fixed
+   240px/1fr grid, which has no room to shrink on small screens. */
+@media (max-width: 860px) {
+  .docs-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .docs-sidebar {
+    position: static !important;
+  }
+}
