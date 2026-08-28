@@ -10,8 +10,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { StatCardSkeleton, ChartSkeleton, TableRowSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorRetry } from '@/components/ErrorRetry';
 import { EmptyState } from '@/components/EmptyState';
+import { formatCount, formatUsd, formatMs } from '@/lib/format';
 
-// Default mock shapes so template holes never see undefined
+// Loading-only placeholders (shown until the first real response arrives).
 const DEFAULT_STATS_BY_RANGE = {
   '24h': { requests: '48.2K', tokens: '312M', spend: '$284', latency: '41ms' },
   '7d': { requests: '338K', tokens: '2.1B', spend: '$1,960', latency: '44ms' },
@@ -127,7 +128,8 @@ class DashboardComponent extends React.Component {
   }
 
   getEndpointsList() {
-    if (Array.isArray(this.state.endpointsData) && this.state.endpointsData.length > 0) {
+    // Once the API has responded, trust it — even an empty list is real.
+    if (Array.isArray(this.state.endpointsData)) {
       return this.state.endpointsData;
     }
     return DEFAULT_ENDPOINTS;
@@ -138,17 +140,22 @@ class DashboardComponent extends React.Component {
     const defaultStats = DEFAULT_STATS_BY_RANGE[range] || DEFAULT_STATS_BY_RANGE['24h'];
     const defaultChart = DEFAULT_CHART_BY_RANGE[range] || DEFAULT_CHART_BY_RANGE['24h'];
 
-    // Read real API data with fallback to mock default shape so template holes never see undefined
+    // Once statsData is set the API has answered — show real numbers, including zeros.
     const realStats = this.state.statsData;
-    const stats = {
-      requests: realStats?.requests || defaultStats.requests,
-      tokens: realStats?.tokens || defaultStats.tokens,
-      spend: realStats?.spend || defaultStats.spend,
-      latency: realStats?.latency || (realStats?.p50_latency_ms ? `${realStats.p50_latency_ms}ms` : defaultStats.latency),
-    };
+    const hasStats = realStats != null;
+    const stats = hasStats
+      ? {
+          requests: formatCount(realStats.requests),
+          tokens: formatCount(realStats.tokens),
+          spend: formatUsd(realStats.spend),
+          latency: formatMs(realStats.p50_latency_ms),
+        }
+      : defaultStats;
 
-    const rawChart = realStats?.chart && Array.isArray(realStats.chart) && realStats.chart.length > 0
-      ? realStats.chart
+    const rawChart = hasStats
+      ? (Array.isArray(realStats.chart)
+          ? realStats.chart.map((p) => (typeof p === 'number' ? p : Number(p?.tokens_per_hour) || 0))
+          : [])
       : defaultChart;
 
     const maxVal = Math.max(...rawChart, 1);
@@ -412,6 +419,10 @@ class DashboardComponent extends React.Component {
             </div>
             {loading && !this.state.statsData ? (
               <ChartSkeleton />
+            ) : vals.chartBars.length === 0 ? (
+              <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#80827f', fontSize: '14px', borderBottom: '1px solid #e0dbce' }}>
+                No usage recorded in this range yet.
+              </div>
             ) : (
               <div style={{ height: '260px', display: 'flex', alignItems: 'flex-end', gap: '6px', borderBottom: '1px solid #e0dbce', paddingBottom: '2px' }}>
                 {vals.chartBars.map((bar, i) => (

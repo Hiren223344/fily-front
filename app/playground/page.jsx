@@ -6,20 +6,28 @@ import { Nav } from '@/components/Nav';
 import { streamChatCompletions } from '@/lib/stream';
 import { api } from '@/lib/api';
 
-const AVAILABLE_MODELS = [
-  { id: 'llama-3.1-70b', name: 'Llama 3.1 70B', provider: 'Meta', category: 'Text' },
-  { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', provider: 'Meta', category: 'Text' },
-  { id: 'mixtral-8x22b', name: 'Mixtral 8x22B', provider: 'Mistral', category: 'Text' },
-  { id: 'qwen-2.5-32b', name: 'Qwen 2.5 32B', provider: 'Alibaba', category: 'Text' },
-  { id: 'deepseek-v3', name: 'DeepSeek V3', provider: 'DeepSeek', category: 'Text' },
-  { id: 'custom-fine-tune', name: 'Your fine-tune', provider: 'Custom', category: 'Text' },
-];
-
 function PlaygroundContent() {
   const searchParams = useSearchParams();
-  const initialModel = searchParams?.get('model') || 'llama-3.1-70b';
+  const initialModel = searchParams?.get('model') || '';
 
+  const [models, setModels] = useState([]);
   const [model, setModel] = useState(initialModel);
+
+  useEffect(() => {
+    let alive = true;
+    api
+      .get('/v1/models')
+      .then((data) => {
+        if (!alive) return;
+        const list = Array.isArray(data) ? data : [];
+        setModels(list);
+        setModel((cur) => cur || list[0]?.id || '');
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [systemPrompt, setSystemPrompt] = useState('You are an expert AI assistant on FilyBase serverless inference.');
   const [userPrompt, setUserPrompt] = useState('Explain how serverless GPU inference achieves zero cold starts and autoscaling.');
   const [temperature, setTemperature] = useState(0.7);
@@ -176,11 +184,15 @@ function PlaygroundContent() {
                   cursor: 'pointer',
                 }}
               >
-                {AVAILABLE_MODELS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name} ({m.provider})
-                  </option>
-                ))}
+                {models.length === 0 ? (
+                  <option value={model}>{model || 'Loading models…'}</option>
+                ) : (
+                  models.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name || m.id}{m.provider ? ` (${m.provider})` : ''}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 

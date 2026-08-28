@@ -9,32 +9,26 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { TableRowSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorRetry } from '@/components/ErrorRetry';
 import { EmptyState } from '@/components/EmptyState';
-
-const DEFAULT_ENDPOINTS = [
-  { id: 'ep_1', name: 'chat-prod', model: 'llama-3.1-70b', requests: '48.2K', requests_24h: 48200, latency: '41ms', p50_latency_ms: 41, created: 'Jun 12, 2026', live: true },
-  { id: 'ep_2', name: 'embeddings', model: 'bge-large', requests: '12.9K', requests_24h: 12900, latency: '9ms', p50_latency_ms: 9, created: 'Jun 12, 2026', live: true },
-  { id: 'ep_3', name: 'sd-image-gen', model: 'stable-diffusion-3', requests: '2.1K', requests_24h: 2100, latency: '640ms', p50_latency_ms: 640, created: 'Jul 2, 2026', live: false },
-  { id: 'ep_4', name: 'ft-support-bot', model: 'custom fine-tune', requests: '6.4K', requests_24h: 6400, latency: '52ms', p50_latency_ms: 52, created: 'Jul 18, 2026', live: true },
-  { id: 'ep_5', name: 'summarizer', model: 'qwen-2.5-32b', requests: '980', requests_24h: 980, latency: '38ms', p50_latency_ms: 38, created: 'Aug 3, 2026', live: true },
-  { id: 'ep_6', name: 'moderation-check', model: 'llama-3.1-8b', requests: '31.5K', requests_24h: 31500, latency: '18ms', p50_latency_ms: 18, created: 'Aug 9, 2026', live: false },
-];
+import { formatCount, formatMs, formatShortDate } from '@/lib/format';
 
 class EndpointsComponent extends React.Component {
   state = {
     filter: 'all',
     modalOpen: false,
     formName: '',
-    formModel: 'llama-3.1-70b',
+    formModel: '',
     loading: true,
     deploying: false,
     error: null,
-    endpoints: DEFAULT_ENDPOINTS,
+    endpoints: null,
+    models: [],
   };
 
   poller = null;
 
   componentDidMount() {
     this.fetchEndpoints();
+    this.fetchModels();
 
     // Smart polling with document.hidden pause
     this.poller = new Poller(() => this.fetchEndpoints(true), 10000, { pauseOnHidden: true });
@@ -47,6 +41,19 @@ class EndpointsComponent extends React.Component {
     }
   }
 
+  async fetchModels() {
+    try {
+      const data = await store.get('/v1/models', () => api.get('/v1/models'), TTL.MODELS, false);
+      const models = Array.isArray(data) ? data : [];
+      this.setState((s) => ({
+        models,
+        formModel: s.formModel || (models[0]?.id ?? ''),
+      }));
+    } catch (_) {
+      /* dropdown just stays empty */
+    }
+  }
+
   async fetchEndpoints(isPolling = false) {
     if (!isPolling) {
       this.setState({ loading: true, error: null });
@@ -56,7 +63,7 @@ class EndpointsComponent extends React.Component {
       const endpointsKey = '/v1/endpoints';
       const data = await store.get(endpointsKey, () => api.get(endpointsKey), TTL.ENDPOINTS, isPolling);
       this.setState({
-        endpoints: Array.isArray(data) ? data : DEFAULT_ENDPOINTS,
+        endpoints: Array.isArray(data) ? data : [],
         loading: false,
         error: null,
       });
@@ -113,9 +120,9 @@ class EndpointsComponent extends React.Component {
       this.setState((s) => ({
         modalOpen: false,
         formName: '',
-        formModel: 'llama-3.1-70b',
+        formModel: s.models[0]?.id ?? '',
         deploying: false,
-        endpoints: [created, ...s.endpoints],
+        endpoints: [created, ...(s.endpoints || [])],
       }));
     } catch (err) {
       console.error('[Endpoints] Deploy failed:', err);
@@ -146,7 +153,7 @@ class EndpointsComponent extends React.Component {
 
   renderVals() {
     const filter = this.state.filter;
-    const source = this.state.endpoints || DEFAULT_ENDPOINTS;
+    const source = Array.isArray(this.state.endpoints) ? this.state.endpoints : [];
 
     const filtered = source.filter((ep) =>
       filter === 'all' || (filter === 'live' ? ep.live : !ep.live)
@@ -154,9 +161,9 @@ class EndpointsComponent extends React.Component {
 
     const endpoints = filtered.map((ep) => ({
       ...ep,
-      requests: ep.requests || (ep.requests_24h ? `${(ep.requests_24h / 1000).toFixed(1)}K` : '0'),
-      latency: ep.latency || (ep.p50_latency_ms ? `${ep.p50_latency_ms}ms` : '—'),
-      created: ep.created || (ep.created_at ? new Date(ep.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'),
+      requests: formatCount(ep.requests_24h),
+      latency: ep.p50_latency_ms ? formatMs(ep.p50_latency_ms) : '—',
+      created: formatShortDate(ep.created_at),
       statusLabel: ep.live ? 'Live' : 'Paused',
       statusColor: ep.live ? '#8ed462' : '#ff705d',
       toggle: () => this.toggleEndpoint(ep),
@@ -176,7 +183,8 @@ class EndpointsComponent extends React.Component {
       formModel: this.state.formModel,
       sharedBorder: '#8ed462',
       sharedBg: '#f5f1e4',
-      openModal: () => this.setState({ modalOpen: true, formName: '', formModel: 'llama-3.1-70b', error: null }),
+      models: this.state.models,
+      openModal: () => this.setState((s) => ({ modalOpen: true, formName: '', formModel: s.models[0]?.id ?? '', error: null })),
       closeModal: () => this.setState({ modalOpen: false }),
       stopClick: (e) => e.stopPropagation(),
       setFormName: (e) => this.setState({ formName: e.target.value }),
@@ -499,12 +507,15 @@ class EndpointsComponent extends React.Component {
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="llama-3.1-70b">Llama 3.1 70B</option>
-                  <option value="llama-3.1-8b">Llama 3.1 8B</option>
-                  <option value="mixtral-8x22b">Mixtral 8x22B</option>
-                  <option value="qwen-2.5-32b">Qwen 2.5 32B</option>
-                  <option value="stable-diffusion-3">Stable Diffusion 3</option>
-                  <option value="bge-large">BGE Large (embeddings)</option>
+                  {vals.models.length === 0 ? (
+                    <option value="">No models available</option>
+                  ) : (
+                    vals.models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name || m.id}{m.provider ? ` (${m.provider})` : ''}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
