@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env*.local
+npm-debug.log*
+/*.dc.html
+/.thumbnail
+/support.js
+/debug_caret.png
+/Backend Spec.md
