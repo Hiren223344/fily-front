@@ -9,6 +9,42 @@ import { ModelCardSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorRetry } from '@/components/ErrorRetry';
 import { EmptyState } from '@/components/EmptyState';
 
+// The gateway returns category lowercase ("embedding"); the UI filters on "embeddings".
+function normalizeCategory(cat) {
+  const c = (cat || '').toLowerCase();
+  if (c === 'embedding') return 'embeddings';
+  return c;
+}
+
+function titleCase(cat) {
+  const c = normalizeCategory(cat);
+  return c ? c.charAt(0).toUpperCase() + c.slice(1) : '';
+}
+
+// The gateway returns price as an object of per-unit rates; the mock used a string.
+function formatPrice(model) {
+  const p = model.price;
+  if (p == null) return '—';
+  if (typeof p === 'string') return p;
+  if (typeof p !== 'object') return String(p);
+
+  const cat = normalizeCategory(model.category);
+  const num = (v) => Number(v) || 0;
+
+  if (cat === 'image' && num(p.per_image) > 0) return `$${num(p.per_image)} / image`;
+  if (cat === 'audio' && num(p.per_audio_min) > 0) return `$${num(p.per_audio_min)} / min`;
+
+  const pin = num(p.in_per_mtok);
+  const pout = num(p.out_per_mtok);
+  if (pin > 0 || pout > 0) {
+    if (pin === pout) return `$${pin} / 1M tok`;
+    return `$${pin} in · $${pout} out / 1M tok`;
+  }
+  if (num(p.per_image) > 0) return `$${num(p.per_image)} / image`;
+  if (num(p.per_audio_min) > 0) return `$${num(p.per_audio_min)} / min`;
+  return '—';
+}
+
 const DEFAULT_MODELS = [
   { id: 'llama-3.1-70b', name: 'Llama 3.1 70B', provider: 'Meta', category: 'Text', price: '$0.90 / 1M tok', dotColor: '#8ed462' },
   { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', provider: 'Meta', category: 'Text', price: '$0.15 / 1M tok', dotColor: '#8ed462' },
@@ -75,14 +111,16 @@ export default class ModelsPage extends React.Component {
 
     const filtered = sourceModels
       .filter((m) => {
-        const cat = (m.category || '').toLowerCase();
+        const cat = normalizeCategory(m.category);
         const matchesCategory = filter === 'all' || cat === filter;
         const matchesSearch = !query || m.name.toLowerCase().includes(query) || (m.provider || '').toLowerCase().includes(query);
         return matchesCategory && matchesSearch;
       })
       .map((m, i) => ({
         ...m,
-        dotColor: m.dotColor || this.getDotColor(m.category),
+        categoryLabel: titleCase(m.category),
+        priceLabel: formatPrice(m),
+        dotColor: m.dotColor || this.getDotColor(normalizeCategory(m.category)),
         delay: `${i * 40}ms`,
       }));
 
@@ -313,7 +351,7 @@ export default class ModelsPage extends React.Component {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: m.dotColor, display: 'inline-block' }}></span>
-                  <div style={{ fontSize: '13px', color: '#80827f' }}>{m.category}</div>
+                  <div style={{ fontSize: '13px', color: '#80827f' }}>{m.categoryLabel || m.category}</div>
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 500 }}>{m.name}</div>
                 <div style={{ fontSize: '14px', color: '#80827f' }} className="mono">
@@ -329,7 +367,7 @@ export default class ModelsPage extends React.Component {
                     borderTop: '1px solid #e0dbce',
                   }}
                 >
-                  <div style={{ fontSize: '16px', fontWeight: 500 }}>{m.price}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 500 }}>{m.priceLabel || (typeof m.price === 'string' ? m.price : '—')}</div>
                   <Link
                     href={`/playground?model=${encodeURIComponent(m.id || m.name)}`}
                     style={{ fontSize: '14px', fontWeight: 500, borderBottom: '1px solid #80827f', color: '#2c2e2a', textDecoration: 'none' }}
