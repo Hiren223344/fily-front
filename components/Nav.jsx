@@ -55,6 +55,7 @@ export function Nav({ variant = 'auto' }) {
       <Link href="/playground" style={linkStyle(pathname === '/playground')} onClick={() => setMobileOpen(false)}>Playground</Link>
       <Link href="/#pricing" style={linkStyle(false)} onClick={() => setMobileOpen(false)}>Pricing</Link>
       <Link href="/docs" style={linkStyle(pathname === '/docs')} onClick={() => setMobileOpen(false)}>Docs</Link>
+      <Link href="/startups" style={linkStyle(pathname === '/startups')} onClick={() => setMobileOpen(false)}>Startups</Link>
     </>
   );
 
