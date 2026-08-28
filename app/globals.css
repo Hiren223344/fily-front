@@ -110,6 +110,25 @@ button, a {
   transform: translateY(-3px);
 }
 
+/* Playground: subtle lift on interactive chrome (buttons, tabs, toggles). */
+.pg-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.pg-btn:disabled {
+  cursor: not-allowed;
+}
+
+@keyframes pgShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
 /* Nav: desktop layout is unchanged above 860px. Below it, links + auth
    actions collapse into a hamburger-triggered dropdown. */
 .nav-links,

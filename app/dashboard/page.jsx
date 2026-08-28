@@ -398,7 +398,7 @@ class DashboardComponent extends React.Component {
             margin: '16px auto 0',
             padding: '0 24px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))',
             gap: '16px',
           }}
         >
