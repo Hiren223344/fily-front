@@ -201,19 +201,19 @@ function PlaygroundContent() {
   const searchParams = useSearchParams();
   const initialModel = searchParams?.get('model') || '';
 
+  // Defaults to light, matching every other page on the site (none of
+  // which have a dark mode). Dark is opt-in only, via the toggle below —
+  // never inferred from prefers-color-scheme, so the playground doesn't
+  // look inconsistent with the rest of the site on a dark-mode OS.
   const [theme, setTheme] = useState('light');
   useEffect(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       if (saved === 'light' || saved === 'dark') {
         setTheme(saved);
-        return;
-      }
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setTheme('dark');
       }
     } catch (_) {
-      /* localStorage/matchMedia unavailable — stay on default light theme */
+      /* localStorage unavailable — stay on default light theme */
     }
   }, []);
   function toggleTheme() {
