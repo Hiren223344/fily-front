@@ -10,7 +10,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-// Headers we must not forward verbatim to the gateway.
+// Headers we must not forward verbatim to the gateway. `origin`/`referer` are
+// dropped because this is a server-to-server call — forwarding the browser's
+// origin makes the gateway's CORS check reject it.
 const STRIP = new Set([
   'host',
   'connection',
@@ -18,6 +20,8 @@ const STRIP = new Set([
   'accept-encoding',
   'cookie',
   'authorization',
+  'origin',
+  'referer',
 ]);
 
 async function forward(req, params) {
