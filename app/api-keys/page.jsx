@@ -74,7 +74,7 @@ function KeysView() {
       <div style={{ maxWidth: '1000px', margin: '40px auto 0', padding: '0 24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '8px' }}>AUTHENTICATION</div>
-          <h1 style={{ fontSize: '44px', fontWeight: 500, letterSpacing: '-1.6px', margin: 0 }}>API Keys</h1>
+          <h1 style={{ fontSize: 'clamp(30px, 8vw, 44px)', fontWeight: 500, letterSpacing: '-1.6px', margin: 0 }}>API Keys</h1>
           <p style={{ fontSize: '14px', color: '#80827f', margin: '10px 0 0', maxWidth: '520px' }}>
             Use these keys to authenticate requests to the inference gateway with{' '}
             <span className="mono">Authorization: Bearer sk-fb-…</span>. The full key is shown only once at creation.
@@ -107,7 +107,7 @@ function KeysView() {
             />
           ) : (
             activeKeys.map((k) => (
-              <div key={k.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 0', borderTop: '1px solid #e0dbce' }}>
+              <div key={k.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', padding: '16px 0', borderTop: '1px solid #e0dbce' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: '15px', fontWeight: 500 }}>{k.name}</div>
                   <div className="mono" style={{ fontSize: '13px', color: '#80827f' }}>
@@ -137,7 +137,7 @@ function KeysView() {
           <div style={{ background: '#ffffff', borderRadius: '32px', padding: '20px 32px', marginTop: '16px' }}>
             <div style={{ fontSize: '13px', color: '#80827f', marginBottom: '4px', fontWeight: 500 }}>REVOKED</div>
             {revokedKeys.map((k) => (
-              <div key={k.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderTop: '1px solid #e0dbce' }}>
+              <div key={k.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', padding: '12px 0', borderTop: '1px solid #e0dbce' }}>
                 <div style={{ fontSize: '14px', color: '#80827f', textDecoration: 'line-through' }}>{k.name}</div>
                 <div className="mono" style={{ fontSize: '12px', color: '#80827f' }}>{(k.prefix || 'sk-fb-')}••••{k.last4 || ''}</div>
               </div>

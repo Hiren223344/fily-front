@@ -154,7 +154,7 @@ function PlaygroundContent() {
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
           <div>
             <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '8px' }}>TEST CONSOLE</div>
-            <h1 style={{ fontSize: '53px', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.1, margin: 0 }}>
+            <h1 style={{ fontSize: 'clamp(34px, 9vw, 53px)', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.1, margin: 0 }}>
               Playground
             </h1>
           </div>

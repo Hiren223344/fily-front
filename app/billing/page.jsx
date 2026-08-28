@@ -131,7 +131,7 @@ function BillingView() {
 
       <div style={{ maxWidth: '1100px', margin: '40px auto 0', padding: '0 24px' }}>
         <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '8px' }}>ACCOUNT</div>
-        <h1 style={{ fontSize: '48px', fontWeight: 500, letterSpacing: '-1.8px', lineHeight: 1.1, margin: 0 }}>Billing</h1>
+        <h1 style={{ fontSize: 'clamp(32px, 8vw, 48px)', fontWeight: 500, letterSpacing: '-1.8px', lineHeight: 1.1, margin: 0 }}>Billing</h1>
       </div>
 
       {banner && (

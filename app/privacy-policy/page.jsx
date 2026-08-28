@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
 
       <div style={{ maxWidth: '760px', margin: '56px auto 0', padding: '0 24px', opacity: 0, animation: 'fadeUp 0.6s cubic-bezier(0.4,0,0.2,1) forwards' }}>
         <div style={{ fontSize: '15px', color: '#80827f', marginBottom: '12px' }}>LEGAL</div>
-        <h1 style={{ fontSize: '53px', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.15, margin: '0 0 12px' }}>
+        <h1 style={{ fontSize: 'clamp(34px, 9vw, 53px)', fontWeight: 500, letterSpacing: '-2.12px', lineHeight: 1.15, margin: '0 0 12px' }}>
           Privacy Policy
         </h1>
         <p style={{ fontSize: '15px', color: '#80827f', margin: '0 0 40px' }}>Last updated August 27, 2026</p>
