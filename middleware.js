@@ -1,32 +1,39 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/models(.*)',
-  '/playground(.*)',
-  '/docs(.*)',
-  '/cookies(.*)',
-  '/cookie-policy(.*)',
-  '/privacy(.*)',
-  '/privacy-policy(.*)',
-  '/terms(.*)',
-  '/terms-of-service(.*)',
-  '/signin(.*)',
-  '/signup(.*)',
-  '/api/v1/(.*)',
-]);
+const PROTECTED_PREFIXES = ['/dashboard', '/endpoints', '/billing', '/api-keys', '/playground'];
 
-export default clerkMiddleware((auth, request) => {
-  if (!isPublicRoute(request)) {
-    auth().protect();
+function applySecurityHeaders(res) {
+  res.headers.set('X-Frame-Options', 'DENY');
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.headers.set('X-DNS-Prefetch-Control', 'off');
+  return res;
+}
+
+export function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  const isProtected = PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
+
+  if (isProtected) {
+    const hasSession =
+      request.cookies.get('fb_access') || request.cookies.get('fb_refresh');
+    if (!hasSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/signin';
+      url.searchParams.set('redirect_url', pathname);
+      return applySecurityHeaders(NextResponse.redirect(url));
+    }
   }
-});
+
+  return applySecurityHeaders(NextResponse.next());
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    '/((?!_next/static|_next/image|favicon.ico|uploads|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf)$).*)',
   ],
 };

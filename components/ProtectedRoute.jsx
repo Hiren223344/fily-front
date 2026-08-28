@@ -1,22 +1,32 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
+import { auth } from '@/lib/auth';
 
 export function ProtectedRoute({ children }) {
-  const { isLoaded, userId } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [status, setStatus] = useState('loading'); // loading | ok | denied
 
   useEffect(() => {
-    if (isLoaded && !userId) {
-      const returnUrl = encodeURIComponent(pathname || '/dashboard');
-      router.replace(`/signin?redirect_url=${returnUrl}`);
-    }
-  }, [isLoaded, userId, router, pathname]);
+    let active = true;
+    auth.fetchMe().then((user) => {
+      if (!active) return;
+      if (user) {
+        setStatus('ok');
+      } else {
+        setStatus('denied');
+        const returnUrl = encodeURIComponent(pathname || '/dashboard');
+        router.replace(`/signin?redirect_url=${returnUrl}`);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [pathname, router]);
 
-  if (!isLoaded) {
+  if (status === 'loading') {
     return (
       <div style={{ background: '#f5f1e4', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
@@ -27,9 +37,7 @@ export function ProtectedRoute({ children }) {
     );
   }
 
-  if (!userId) {
-    return null;
-  }
+  if (status === 'denied') return null;
 
   return <>{children}</>;
 }

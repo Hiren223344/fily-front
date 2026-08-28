@@ -1,16 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
+import { auth } from '@/lib/auth';
 import { ApiKeyModal } from './ApiKeyModal';
+
+const linkStyle = (active) => ({
+  color: active ? '#2c2e2a' : '#80827f',
+  borderBottom: 'none',
+  textDecoration: 'none',
+});
 
 export function Nav({ variant = 'auto' }) {
   const pathname = usePathname();
-  const { user } = useUser();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsub = auth.subscribe(({ user: u }) => setUser(u));
+    if (!auth.isResolved()) auth.fetchMe();
+    return unsub;
+  }, []);
 
   const isDashboardPage =
     variant === 'dashboard' ||
@@ -18,7 +29,10 @@ export function Nav({ variant = 'auto' }) {
       (pathname.startsWith('/dashboard') ||
         pathname.startsWith('/endpoints') ||
         pathname.startsWith('/billing') ||
+        pathname.startsWith('/api-keys') ||
         pathname.startsWith('/playground')));
+
+  const signedIn = Boolean(user);
 
   return (
     <>
@@ -35,298 +49,113 @@ export function Nav({ variant = 'auto' }) {
             boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
           }}
         >
-          {/* LOGO */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Link
-              href="/"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                borderBottom: 'none',
-                textDecoration: 'none',
-              }}
-            >
-              <img
-                src="/uploads/logoipsum-392.png"
-                alt="FilyBase logo"
-                style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'block' }}
-              />
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: 'none', textDecoration: 'none' }}>
+              <img src="/uploads/logoipsum-392.png" alt="FilyBase logo" style={{ width: '36px', height: '36px', borderRadius: '10px', display: 'block' }} />
               <span style={{ fontSize: '17px', fontWeight: 500, color: '#2c2e2a' }}>FilyBase</span>
             </Link>
           </div>
 
-          {/* DASHBOARD NAV LINKS */}
           {isDashboardPage ? (
             <div style={{ display: 'flex', gap: '20px', fontSize: '15px', fontWeight: 500, alignItems: 'center' }}>
-              <Link
-                href="/dashboard"
-                style={{
-                  color: pathname === '/dashboard' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Overview
-              </Link>
-              <Link
-                href="/models"
-                style={{
-                  color: pathname === '/models' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Models
-              </Link>
-              <Link
-                href="/endpoints"
-                style={{
-                  color: pathname === '/endpoints' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Endpoints
-              </Link>
-              <Link
-                href="/playground"
-                style={{
-                  color: pathname === '/playground' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Playground
-              </Link>
-              <Link
-                href="/billing"
-                style={{
-                  color: pathname === '/billing' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Billing
-              </Link>
+              <Link href="/dashboard" style={linkStyle(pathname === '/dashboard')}>Overview</Link>
+              <Link href="/models" style={linkStyle(pathname === '/models')}>Models</Link>
+              <Link href="/endpoints" style={linkStyle(pathname === '/endpoints')}>Endpoints</Link>
+              <Link href="/api-keys" style={linkStyle(pathname === '/api-keys')}>API Keys</Link>
+              <Link href="/playground" style={linkStyle(pathname === '/playground')}>Playground</Link>
+              <Link href="/billing" style={linkStyle(pathname === '/billing')}>Billing</Link>
             </div>
           ) : (
-            /* MARKETING NAV LINKS */
             <div style={{ display: 'flex', gap: '20px', fontSize: '15px', fontWeight: 500, alignItems: 'center' }}>
-              <Link
-                href="/models"
-                style={{
-                  color: pathname === '/models' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Models
-              </Link>
-              <Link
-                href="/playground"
-                style={{
-                  color: pathname === '/playground' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Playground
-              </Link>
-              <Link
-                href="/#pricing"
-                style={{
-                  color: '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/docs"
-                style={{
-                  color: pathname === '/docs' ? '#2c2e2a' : '#80827f',
-                  borderBottom: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Docs
-              </Link>
+              <Link href="/models" style={linkStyle(pathname === '/models')}>Models</Link>
+              <Link href="/playground" style={linkStyle(pathname === '/playground')}>Playground</Link>
+              <Link href="/#pricing" style={linkStyle(false)}>Pricing</Link>
+              <Link href="/docs" style={linkStyle(pathname === '/docs')}>Docs</Link>
             </div>
           )}
 
-          {/* RIGHT ACTIONS */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
-            {/* Popover Menu Trigger for marketing pages */}
-            {!isDashboardPage && (
-              <div style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className="menu-trigger"
-                  onClick={() => setMenuOpen(!menuOpen)}
+            {signedIn ? (
+              <>
+                <Link
+                  href="/api-keys"
                   style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: '#8ed462',
-                    border: 'none',
-                    cursor: 'pointer',
+                    background: '#f5f1e4',
+                    borderRadius: '50px',
+                    padding: '9px 16px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#2c2e2a',
+                    textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    gap: '8px',
                   }}
-                  aria-label="menu"
                 >
-                  <div style={{ width: '16px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <div style={{ height: '2px', background: '#2c2e2a', borderRadius: '2px' }}></div>
-                    <div style={{ height: '2px', background: '#2c2e2a', borderRadius: '2px' }}></div>
-                  </div>
-                </button>
-
-                {/* Popover Dropdown Panel */}
-                <div
-                  className="menu-panel"
+                  API Keys
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8ed462', display: 'inline-block' }}></span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => auth.logout()}
+                  title={user?.email || 'Sign out'}
                   style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 16px)',
-                    right: 0,
-                    background: '#ffffff',
-                    borderRadius: '24px',
-                    padding: '8px',
-                    minWidth: '540px',
-                    border: '1px solid #e0dbce',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '4px',
-                    zIndex: 150,
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                    opacity: menuOpen ? 1 : 0,
-                    transform: menuOpen ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.97)',
-                    pointerEvents: menuOpen ? 'auto' : 'none',
-                    transition: 'opacity 260ms cubic-bezier(0.16,1,0.3,1), transform 260ms cubic-bezier(0.16,1,0.3,1)',
+                    background: '#2c2e2a',
+                    color: '#f5f1e4',
+                    borderRadius: '50px',
+                    padding: '9px 16px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    fontFamily: 'inherit',
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
-                  <Link
-                    href="/docs#rate-limits"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Rate limits
-                  </Link>
-                  <Link
-                    href="/privacy"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Privacy
-                  </Link>
-                  <Link
-                    href="/terms"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Terms
-                  </Link>
-                  <Link
-                    href="/cookies"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Cookies
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/playground"
-                    onClick={() => setMenuOpen(false)}
-                    style={{ padding: '11px 16px', fontSize: '14px', fontWeight: 500, borderRadius: '16px', color: '#2c2e2a', textDecoration: 'none' }}
-                  >
-                    Console
-                  </Link>
-                </div>
-              </div>
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/signup"
+                  style={{
+                    background: '#f5f1e4',
+                    borderRadius: '50px',
+                    padding: '11px 20px',
+                    fontSize: '15px',
+                    fontWeight: 500,
+                    color: '#2c2e2a',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  Get API key
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ba0ff', display: 'inline-block' }}></span>
+                </Link>
+                <Link
+                  href="/signin"
+                  style={{
+                    background: '#2c2e2a',
+                    color: '#f5f1e4',
+                    borderRadius: '50px',
+                    padding: '11px 20px',
+                    fontSize: '15px',
+                    fontWeight: 500,
+                    textDecoration: 'none',
+                    display: 'inline-block',
+                  }}
+                >
+                  Sign in
+                </Link>
+              </>
             )}
-
-            {/* Clerk Authentication Buttons */}
-            <SignedIn>
-              <button
-                type="button"
-                onClick={() => setApiKeyModalOpen(true)}
-                style={{
-                  background: '#f5f1e4',
-                  borderRadius: '50px',
-                  padding: '9px 16px',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  color: '#2c2e2a',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  border: 'none',
-                }}
-              >
-                API Key
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#8ed462', display: 'inline-block' }}></span>
-              </button>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-
-            <SignedOut>
-              <button
-                type="button"
-                onClick={() => setApiKeyModalOpen(true)}
-                style={{
-                  background: '#f5f1e4',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  color: '#2c2e2a',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  border: 'none',
-                  textDecoration: 'none',
-                }}
-              >
-                Get API key
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ba0ff', display: 'inline-block' }}></span>
-              </button>
-              <Link
-                href="/signin"
-                style={{
-                  background: '#2c2e2a',
-                  color: '#f5f1e4',
-                  borderRadius: '50px',
-                  padding: '11px 20px',
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  textDecoration: 'none',
-                  display: 'inline-block',
-                }}
-              >
-                Sign in
-              </Link>
-            </SignedOut>
           </div>
         </div>
       </div>
 
-      <ApiKeyModal
-        isOpen={apiKeyModalOpen}
-        onClose={() => setApiKeyModalOpen(false)}
-      />
+      <ApiKeyModal isOpen={apiKeyModalOpen} onClose={() => setApiKeyModalOpen(false)} />
     </>
   );
 }

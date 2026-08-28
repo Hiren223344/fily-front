@@ -25,7 +25,7 @@ export function ApiKeyModal({ isOpen, onClose, onCreated }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post('/v1/api-keys', { name: name.trim() || 'Default Secret Key' });
+      const res = await api.post('/v1/keys', { name: name.trim() || 'Default Secret Key' });
       setCreatedKey(res.key);
       if (onCreated) onCreated(res);
     } catch (err) {

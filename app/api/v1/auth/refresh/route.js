@@ -1,29 +1,20 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
+import { REFRESH_COOKIE, setSessionCookies, clearSessionCookies, refreshTokens } from '@/lib/server/backend';
 
-export async function POST(req) {
-  try {
-    const refreshToken = req.cookies.get('filybase_refresh_token')?.value;
+export const dynamic = 'force-dynamic';
 
-    if (!refreshToken) {
-      return NextResponse.json(
-        { error: { message: 'No refresh token available', type: 'authentication_error', code: 'unauthorized' } },
-        { status: 401 }
-      );
-    }
+export async function POST() {
+  const refresh = cookies().get(REFRESH_COOKIE)?.value;
+  const rotated = await refreshTokens(refresh);
 
-    const user = db.users[0] || { id: 'usr_default', email: 'jordan@filybase.ai', name: 'Jordan Diaz' };
-    const newToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ sub: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + 3600 }))}.sig`;
-
-    return NextResponse.json({
-      token: newToken,
-      access_token: newToken,
-      user,
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { error: { message: err.message, code: 'internal_error' } },
-      { status: 500 }
-    );
+  if (!rotated) {
+    const res = NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    clearSessionCookies(res);
+    return res;
   }
+
+  const res = NextResponse.json({ ok: true, user: rotated.user });
+  setSessionCookies(res, rotated);
+  return res;
 }

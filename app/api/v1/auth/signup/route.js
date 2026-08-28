@@ -1,50 +1,41 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { BACKEND_ORIGIN, setSessionCookies, extractBackendRefresh } from '@/lib/server/backend';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
+  const body = await req.text();
+
+  let backendRes;
   try {
-    const body = await req.json().catch(() => ({}));
-    const { name, email, password } = body;
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: { message: 'Email and password are required', type: 'invalid_request_error', code: 'missing_credentials' } },
-        { status: 400 }
-      );
-    }
-
-    const newUser = {
-      id: `usr_${Date.now()}`,
-      name: name || email.split('@')[0],
-      email,
-      plan: 'Pay as you go',
-      credits: 5.00,
-    };
-
-    db.users.push(newUser);
-
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ sub: newUser.id, email: newUser.email, exp: Math.floor(Date.now() / 1000) + 3600 }))}.sig`;
-    const refreshToken = `ref_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-
-    const res = NextResponse.json({
-      token,
-      access_token: token,
-      user: newUser,
+    backendRes = await fetch(`${BACKEND_ORIGIN}/v1/auth/signup`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body,
+      cache: 'no-store',
     });
-
-    res.cookies.set('filybase_refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60,
-    });
-
-    return res;
-  } catch (err) {
+  } catch {
     return NextResponse.json(
-      { error: { message: err.message, code: 'internal_error' } },
-      { status: 500 }
+      { error: 'bad_gateway', message: 'Authentication service is unreachable.' },
+      { status: 502 }
     );
   }
+
+  const data = await backendRes.json().catch(() => ({}));
+  if (!backendRes.ok) {
+    return NextResponse.json(
+      { error: data.error || 'signup_failed', message: data.message || 'Could not create account.' },
+      { status: backendRes.status }
+    );
+  }
+
+  const user = data.user || {};
+  // The gateway returns a one-time initial API key on signup — surface it once
+  // so the client can show it, but never persist it here.
+  const res = NextResponse.json({
+    user: { id: user.id, email: user.email, name: user.name },
+    initial_api_key: user.initial_api_key || null,
+  });
+  setSessionCookies(res, { access: data.token, refresh: extractBackendRefresh(backendRes) });
+  return res;
 }
