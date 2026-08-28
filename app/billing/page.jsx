@@ -22,6 +22,13 @@ function currentPeriod() {
   return new Date().toISOString().slice(0, 7); // YYYY-MM
 }
 
+// Balance can carry sub-cent fractions from per-token billing — show them.
+function formatBalance(usd) {
+  const v = Number(usd) || 0;
+  const trimmed = v.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+  return `$${trimmed.includes('.') ? trimmed : `${trimmed}.00`}`;
+}
+
 function statusColor(status) {
   const s = String(status || '').toLowerCase();
   if (['credited', 'paid', 'finished', 'confirmed'].includes(s)) return '#8ed462';
@@ -153,10 +160,10 @@ function BillingView() {
         <div style={card}>
           <div style={{ fontSize: '14px', color: '#80827f', marginBottom: '6px' }}>CREDIT BALANCE</div>
           <div style={{ fontSize: '44px', fontWeight: 500, letterSpacing: '-1.5px' }}>
-            {loading && !plan ? '—' : formatUsd(balanceUsd)}
+            {loading && !plan ? '—' : formatBalance(balanceUsd)}
           </div>
           <div style={{ fontSize: '13px', color: '#80827f', marginTop: '4px' }}>
-            {formatCount(plan?.balance_credits ?? 0)} credits · {plan?.plan || 'Pay-as-you-go'}
+            {(plan?.balance_credits ?? 0).toLocaleString()} credits · {plan?.plan || 'Pay-as-you-go'}
           </div>
           {balanceUsd <= 0 && !loading && (
             <div style={{ marginTop: '14px', background: '#fff3e0', color: '#8a5a00', borderRadius: '12px', padding: '10px 14px', fontSize: '13px' }}>
