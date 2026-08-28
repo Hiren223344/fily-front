@@ -9,6 +9,24 @@ import {
 } from '@/lib/server/backend';
 
 export const dynamic = 'force-dynamic';
+// Allow long-running SSE streams (playground). Hobby plans still cap at 10s.
+export const maxDuration = 60;
+
+// Gateway response headers worth surfacing to the browser.
+const PASS_THROUGH = [
+  'x-filybase-request-id',
+  'x-filybase-model',
+  'x-filybase-latency-ms',
+  'x-filybase-ttft-ms',
+  'x-filybase-credits-used',
+  'retry-after',
+  'x-ratelimit-limit-requests',
+  'x-ratelimit-remaining-requests',
+  'x-ratelimit-reset-requests',
+  'x-ratelimit-limit-tokens',
+  'x-ratelimit-remaining-tokens',
+  'x-ratelimit-reset-tokens',
+];
 
 // Headers we must not forward verbatim to the gateway. `origin`/`referer` are
 // dropped because this is a server-to-server call — forwarding the browser's
@@ -62,20 +80,36 @@ async function forward(req, params) {
 
   let rotated = null;
   if (backendRes.status === 401 && refresh) {
+    try {
+      await backendRes.body?.cancel();
+    } catch {
+      /* ignore */
+    }
     rotated = await refreshTokens(refresh);
     if (rotated) {
       backendRes = await call(rotated.access);
     }
   }
 
-  const payload = Buffer.from(await backendRes.arrayBuffer());
-  const out = new NextResponse(payload.length ? payload : null, { status: backendRes.status });
+  const contentType = backendRes.headers.get('content-type') || '';
+  const isStream = contentType.includes('text/event-stream');
 
-  const contentType = backendRes.headers.get('content-type');
-  if (contentType) out.headers.set('content-type', contentType);
+  const headers = new Headers();
+  if (contentType) headers.set('content-type', contentType);
+  for (const name of PASS_THROUGH) {
+    const v = backendRes.headers.get(name);
+    if (v) headers.set(name, v);
+  }
+  if (isStream) {
+    headers.set('cache-control', 'no-cache, no-transform');
+    headers.set('x-accel-buffering', 'no');
+  }
+
+  // Stream the gateway body straight through — no buffering — so SSE tokens
+  // reach the browser as they are produced.
+  const out = new NextResponse(backendRes.body, { status: backendRes.status, headers });
 
   if (rotated) setSessionCookies(out, rotated);
-  // If refresh was attempted and failed, drop the stale session.
   if (backendRes.status === 401 && refresh && !rotated) {
     out.cookies.set(ACCESS_COOKIE, '', { path: '/', maxAge: 0 });
     out.cookies.set(REFRESH_COOKIE, '', { path: '/', maxAge: 0 });
